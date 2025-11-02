@@ -30,12 +30,12 @@ async function main() {
 }
 
 app.get("/", (req, res) => {
-  res.send("App is working");
-});
-
-app.get("/home", (req, res) => {
   res.render("home.ejs");
 });
+
+// app.get("/home", (req, res) => {
+//   res.send("App is working");
+// });
 
 app.get("/signup", (req, res) => {
   res.render("signup.ejs");
