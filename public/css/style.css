@@ -1,0 +1,70 @@
+body {
+  background-color: #e0e0e0;
+}
+
+/* navbar */
+
+.navbar-brand {
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  transition: 0.3s ease-in-out;
+}
+
+.navbar-brand:hover {
+  color: #0dcaf0 !important; /* Bootstrap info */
+}
+
+.nav-search input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.nav-search input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+  border-color: #0dcaf0;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.socials i {
+  font-size: 1.6rem;
+  margin: 0 0.5rem;
+}
+
+
+
+/* Card (Task Show) */
+/* .task-details {
+  background-color: #bdc1c5;
+  padding: 1rem;
+  border: 2px solid black;
+  border-radius: 2rem;
+  margin-bottom: 2rem;
+} */
+
+.task-new,
+.task-details {
+  background-color: grey;
+  padding: 2rem;
+  margin-top: 3rem;
+  border-radius: 2rem;
+}
+
+.task {
+  padding: 1rem;
+}
+
+.task-edit-dlt {
+  display: flex;
+  margin: 1rem;
+  justify-content: space-around;
+}
+
+a {
+  text-decoration: none;
+}

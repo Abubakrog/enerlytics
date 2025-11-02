@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Smart Energy Monitor</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Header */
+      header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        color: #667eea;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .user-name {
+        font-weight: 600;
+        color: #555;
+      }
+
+      .logout-btn {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .logout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+      }
+
+      /* Stats Cards */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .stat-card.power::before {
+        background: linear-gradient(90deg, #f093fb, #f5576c);
+      }
+
+      .stat-card.energy::before {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+      }
+
+      .stat-card.cost::before {
+        background: linear-gradient(90deg, #43e97b, #38f9d7);
+      }
+
+      .stat-card.devices::before {
+        background: linear-gradient(90deg, #fa709a, #fee140);
+      }
+
+      .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        opacity: 0.8;
+      }
+
+      .stat-card.power .stat-icon {
+        color: #f5576c;
+      }
+
+      .stat-card.energy .stat-icon {
+        color: #00f2fe;
+      }
+
+      .stat-card.cost .stat-icon {
+        color: #38f9d7;
+      }
+
+      .stat-card.devices .stat-icon {
+        color: #fee140;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+      }
+
+      .stat-unit {
+        font-size: 1rem;
+        color: #999;
+        font-weight: 400;
+      }
+
+      /* Insights Section */
+      .insights-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .insight-item {
+        padding: 12px;
+        margin: 8px 0;
+        background: #f8f9ff;
+        border-left: 4px solid #667eea;
+        border-radius: 8px;
+        font-size: 0.95rem;
+      }
+
+      /* Add Device Form */
+      .add-device-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .form-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto;
+        gap: 15px;
+        align-items: end;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 8px;
+      }
+
+      .form-group input {
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .add-device-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        white-space: nowrap;
+      }
+
+      .add-device-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      /* Edit Device Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        background: white;
+        margin: 10% auto;
+        padding: 30px;
+        border-radius: 20px;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: #333;
+      }
+
+      /* Charts Section */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .chart-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-card.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .chart-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+
+      .chart-container.tall {
+        height: 400px;
+      }
+
+      /* Devices Table */
+      .devices-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .devices-table {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      thead {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      td {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+      }
+
+      tr:hover {
+        background-color: #f8f9ff;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-on {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-off {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .toggle-btn, .edit-btn, .delete-btn {
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        font-size: 0.85rem;
+      }
+
+      .toggle-btn {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+      }
+
+      .toggle-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 233, 123, 0.4);
+      }
+
+      .toggle-btn.off {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .edit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .edit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .delete-btn {
+        background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+        color: white;
+      }
+
+      .delete-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+      }
+
+      /* Footer */
+      footer {
+        text-align: center;
+        padding: 20px;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-card.full-width {
+          grid-column: 1;
+        }
+
+        header {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <header>
+        <h1><i class="fas fa-bolt"></i> Enerlytics</h1>
+        <div class="user-info">
+          <span class="user-name"><i class="fas fa-user-circle"></i> <%= user.name %></span>
+          <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+      </header>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card power">
+          <div class="stat-icon"><i class="fas fa-plug"></i></div>
+          <div class="stat-label">Total Power Usage</div>
+          <div class="stat-value">
+            <%= totalPower || 0 %><span class="stat-unit"> W</span>
+          </div>
+        </div>
+
+        <div class="stat-card energy">
+          <div class="stat-icon"><i class="fas fa-battery-three-quarters"></i></div>
+          <div class="stat-label">Today's Energy</div>
+          <div class="stat-value">
+            <%= totalEnergy || 0 %><span class="stat-unit"> kWh</span>
+          </div>
+        </div>
+
+        <div class="stat-card cost">
+          <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+          <div class="stat-label">Estimated Cost</div>
+          <div class="stat-value">
+            ₹<span class="stat-unit"><%= totalCost || 0 %></span>
+          </div>
+        </div>
+
+        <div class="stat-card devices">
+          <div class="stat-icon"><i class="fas fa-microchip"></i></div>
+          <div class="stat-label">Devices Connected</div>
+          <div class="stat-value">
+            <%= devices.length || 0 %><span class="stat-unit"> devices</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Insights Section -->
+      <% if (insights && insights.length > 0) { %>
+      <div class="insights-section">
+        <div class="section-title">
+          <i class="fas fa-lightbulb"></i> Energy Insights
+        </div>
+        <% insights.forEach(insight => { %>
+        <div class="insight-item"><%= insight %></div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- Add Device Form -->
+      <div class="add-device-section">
+        <div class="form-title">
+          <i class="fas fa-plus-circle"></i> Add New Appliance
+        </div>
+        <form action="/dashboard/<%= user._id %>/device" method="POST" class="form-grid">
+          <div class="form-group">
+            <label for="name">Device Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g., Air Conditioner" required>
+          </div>
+          <div class="form-group">
+            <label for="powerRating">Power Rating (W)</label>
+            <input type="number" id="powerRating" name="powerRating" placeholder="e.g., 1500" step="0.1" min="0" max="50000" required>
+          </div>
+          <div class="form-group">
+            <label for="usageHours">Usage Hours/Day</label>
+            <input type="number" id="usageHours" name="usageHours" placeholder="e.g., 8" step="0.1" min="0" max="24" required>
+          </div>
+          <button type="submit" class="add-device-btn">
+            <i class="fas fa-plus"></i> Add Device
+          </button>
+        </form>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <!-- Energy Usage Over Time Chart (7 days) -->
+        <div class="chart-card full-width">
+          <div class="chart-title">
+            <i class="fas fa-chart-line"></i> Energy Usage Over Time (Last 7 Days)
+          </div>
+          <div class="chart-container tall">
+            <canvas id="energyTimeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Monthly Comparison Chart -->
+        <div class="chart-card">
+          <div class="chart-title">
+            <i class="fas fa-chart-area"></i> Monthly Comparison
+          </div>
+          <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Device-wise Consumption Chart -->
+        <div class="chart-card">
+          <div class="chart-title">
+            <i class="fas fa-chart-pie"></i> Device Energy Distribution
+          </div>
+          <div class="chart-container">
+            <canvas id="deviceChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Cost Analysis Chart -->
+        <div class="chart-card full-width">
+          <div class="chart-title">
+            <i class="fas fa-chart-bar"></i> Cost Analysis (Last 7 Days)
+          </div>
+          <div class="chart-container">
+            <canvas id="costChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Devices Table -->
+      <div class="devices-section">
+        <div class="section-title">
+          <i class="fas fa-list"></i> Device Usage Summary
+        </div>
+        <div class="devices-table">
+          <table>
+            <thead>
+              <tr>
+                <th><i class="fas fa-microchip"></i> Device Name</th>
+                <th><i class="fas fa-plug"></i> Power (W)</th>
+                <th><i class="fas fa-battery-half"></i> Energy (kWh)</th>
+                <th><i class="fas fa-clock"></i> Usage (hrs/day)</th>
+                <th><i class="fas fa-power-off"></i> Status</th>
+                <th><i class="fas fa-cog"></i> Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!devices || devices.length === 0) { %>
+              <tr>
+                <td colspan="6" style="text-align: center; color: #999; padding: 30px;">
+                  No devices connected. Add your first device above!
+                </td>
+              </tr>
+              <% } else { %>
+                <% devices.forEach(device => { %>
+                <tr>
+                  <td><strong><%= device.name || 'Unknown' %></strong></td>
+                  <td><%= device.powerRating || 0 %> W</td>
+                  <td>
+                    <%= ((device.powerRating || 0) * (device.usageHours || 0) / 1000).toFixed(2) %> kWh
+                  </td>
+                  <td><%= device.usageHours || 0 %> hrs</td>
+                  <td>
+                    <span class="status-badge <%= (device.status === 'ON') ? 'status-on' : 'status-off' %>">
+                      <i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 5px;"></i>
+                      <%= device.status || 'OFF' %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <form action="/dashboard/<%= user._id %>/device/<%= device._id %>/toggle?_method=PATCH" method="POST" style="display: inline;">
+                        <button type="submit" class="toggle-btn <%= (device.status === 'OFF') ? 'off' : '' %>">
+                          <i class="fas fa-toggle-<%= (device.status === 'ON') ? 'on' : 'off' %>"></i>
+                          Turn <%= (device.status === 'ON') ? 'OFF' : 'ON' %>
+                        </button>
+                      </form>
+                      <button type="button" class="edit-btn" onclick="editDevice('<%= device._id %>', '<%= device.name %>', <%= device.powerRating || 0 %>, <%= device.usageHours || 0 %>)">
+                        <i class="fas fa-edit"></i> Edit
+                      </button>
+                      <form action="/dashboard/<%= user._id %>/device/<%= device._id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this device?');">
+                        <button type="submit" class="delete-btn">
+                          <i class="fas fa-trash"></i> Delete
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Device Modal -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="margin-bottom: 20px;"><i class="fas fa-edit"></i> Edit Device</h2>
+        <form id="editDeviceForm" method="POST">
+          <input type="hidden" name="_method" value="PUT">
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="editName">Device Name</label>
+            <input type="text" id="editName" name="name" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="editPower">Power Rating (W)</label>
+            <input type="number" id="editPower" name="powerRating" step="0.1" min="0" max="50000" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="editHours">Usage Hours/Day</label>
+            <input type="number" id="editHours" name="usageHours" step="0.1" min="0" max="24" required>
+          </div>
+          <button type="submit" class="add-device-btn" style="width: 100%;">
+            <i class="fas fa-save"></i> Update Device
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      Enerlytics © 2025 | Designed for Smarter Cities 🌱
+    </footer>
+
+    <script>
+      // Store chart instances for cleanup
+      let chartInstances = {};
+
+      // Prepare data from server - ensure all data is safe
+      const devices = <%- JSON.stringify(devices || []) %>;
+      const logs = <%- JSON.stringify(logs || []) %>;
+      const dailyData = <%- JSON.stringify(dailyData || []) %>;
+      const totalPower = <%= totalPower || 0 %>;
+      const totalEnergy = <%= parseFloat(totalEnergy) || 0 %>;
+      const totalCost = <%= parseFloat(totalCost) || 0 %>;
+      const currentMonthEnergy = <%= parseFloat(currentMonthEnergy) || 0 %>;
+      const lastMonthEnergy = <%= parseFloat(lastMonthEnergy) || 0 %>;
+      const currentMonthCost = <%= parseFloat(currentMonthCost) || 0 %>;
+      const lastMonthCost = <%= parseFloat(lastMonthCost) || 0 %>;
+
+      console.log('Dashboard Data Loaded:', {
+        devices: devices.length,
+        dailyData: dailyData.length,
+        currentMonthEnergy,
+        lastMonthEnergy
+      });
+
+      // Chart.js default configuration
+      Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+      Chart.defaults.font.size = 12;
+      Chart.defaults.color = '#666';
+
+      // Helper to destroy existing chart
+      function destroyChart(chartId) {
+        if (chartInstances[chartId]) {
+          chartInstances[chartId].destroy();
+          delete chartInstances[chartId];
+        }
+      }
+
+      // Helper function to safely parse dates
+      function safeDate(dateStr) {
+        try {
+          return new Date(dateStr);
+        } catch (e) {
+          return new Date();
+        }
+      }
+
+      // Helper function to safely parse numbers
+      function safeNumber(val) {
+        const num = parseFloat(val);
+        return isNaN(num) ? 0 : num;
+      }
+
+      // 1. Energy Usage Over Time (7 Days - Line Chart)
+      const energyTimeCtx = document.getElementById('energyTimeChart');
+      if (energyTimeCtx) {
+        // Prepare 7-day daily data
+        const timeLabels = [];
+        const energyData = [];
+        
+        if (dailyData && dailyData.length > 0) {
+          dailyData.forEach(day => {
+            const date = safeDate(day.date);
+            timeLabels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+            energyData.push(safeNumber(day.energy));
+          });
+        } else {
+          // Fallback: create empty data for 7 days
+          const today = new Date();
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            timeLabels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+            energyData.push(0);
+          }
+        }
+
+        destroyChart('energyTime');
+        chartInstances['energyTime'] = new Chart(energyTimeCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: timeLabels,
+            datasets: [{
+              label: 'Daily Energy Usage (kWh)',
+              data: energyData,
+              borderColor: 'rgb(102, 126, 234)',
+              backgroundColor: 'rgba(102, 126, 234, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointBackgroundColor: 'rgb(102, 126, 234)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                callbacks: {
+                  label: function(context) {
+                    return `Energy: ${safeNumber(context.parsed.y).toFixed(2)} kWh`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                  callback: function(value) {
+                    return safeNumber(value).toFixed(1) + ' kWh';
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Cost Analysis Chart (Bar Chart - Last 7 Days) - FROM DATABASE
+      const costCtx = document.getElementById('costChart');
+      if (costCtx) {
+        const costLabels = [];
+        const costData = [];
+        
+        // Fetch cost data from database logs (dailyData already has it)
+        if (dailyData && dailyData.length > 0) {
+          dailyData.forEach(day => {
+            try {
+              const date = safeDate(day.date);
+              costLabels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+              // Use cost from database, fallback to calculated if not present
+              let dayCost = safeNumber(day.cost);
+              if (dayCost === 0 && day.energy) {
+                // Calculate cost if not in database
+                dayCost = safeNumber(day.energy) * 6;
+              }
+              costData.push(dayCost);
+            } catch (e) {
+              console.error('Error processing daily cost data:', e);
+            }
+          });
+        }
+        
+        // Ensure we have 7 days of data
+        if (costLabels.length < 7) {
+          const today = new Date();
+          const existingDates = new Set(costLabels);
+          for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            if (!existingDates.has(label)) {
+              costLabels.push(label);
+              costData.push(0);
+            }
+          }
+        }
+
+        console.log('Cost Chart Data:', { labels: costLabels, data: costData });
+
+        destroyChart('cost');
+        chartInstances['cost'] = new Chart(costCtx.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: costLabels,
+            datasets: [{
+              label: 'Daily Cost (₹)',
+              data: costData,
+              backgroundColor: 'rgba(67, 233, 123, 0.8)',
+              borderColor: 'rgba(67, 233, 123, 1)',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                callbacks: {
+                  label: function(context) {
+                    return `Cost: ₹${safeNumber(context.parsed.y).toFixed(2)}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                  callback: function(value) {
+                    return '₹' + safeNumber(value).toFixed(0);
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 3. Monthly Comparison Chart (Bar Chart) - FROM DATABASE
+      const monthlyCtx = document.getElementById('monthlyChart');
+      if (monthlyCtx) {
+        const lastMonthEnergyVal = safeNumber(lastMonthEnergy);
+        const currentMonthEnergyVal = safeNumber(currentMonthEnergy);
+        const lastMonthCostVal = safeNumber(lastMonthCost);
+        const currentMonthCostVal = safeNumber(currentMonthCost);
+        
+        console.log('Monthly Chart Data:', {
+          lastMonthEnergy: lastMonthEnergyVal,
+          currentMonthEnergy: currentMonthEnergyVal,
+          lastMonthCost: lastMonthCostVal,
+          currentMonthCost: currentMonthCostVal
+        });
+
+        destroyChart('monthly');
+        chartInstances['monthly'] = new Chart(monthlyCtx.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['Last Month', 'Current Month'],
+            datasets: [
+              {
+                label: 'Energy (kWh)',
+                data: [lastMonthEnergyVal, currentMonthEnergyVal],
+                backgroundColor: ['rgba(250, 112, 154, 0.8)', 'rgba(79, 172, 254, 0.8)'],
+                borderColor: ['rgba(250, 112, 154, 1)', 'rgba(79, 172, 254, 1)'],
+                borderWidth: 2,
+                borderRadius: 8,
+                yAxisID: 'y',
+              },
+              {
+                label: 'Cost (₹)',
+                data: [lastMonthCostVal, currentMonthCostVal],
+                backgroundColor: ['rgba(254, 224, 64, 0.8)', 'rgba(67, 233, 123, 0.8)'],
+                borderColor: ['rgba(254, 224, 64, 1)', 'rgba(67, 233, 123, 1)'],
+                borderWidth: 2,
+                borderRadius: 8,
+                yAxisID: 'y1',
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  padding: 10,
+                  usePointStyle: true
+                }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                callbacks: {
+                  label: function(context) {
+                    if (context.datasetIndex === 0) {
+                      return `Energy: ${safeNumber(context.parsed.y).toFixed(2)} kWh`;
+                    } else {
+                      return `Cost: ₹${safeNumber(context.parsed.y).toFixed(2)}`;
+                    }
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Energy (kWh)',
+                  font: {
+                    size: 12,
+                    weight: 'bold'
+                  }
+                },
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                  callback: function(value) {
+                    return safeNumber(value).toFixed(1) + ' kWh';
+                  }
+                }
+              },
+              y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Cost (₹)',
+                  font: {
+                    size: 12,
+                    weight: 'bold'
+                  }
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+                ticks: {
+                  callback: function(value) {
+                    return '₹' + safeNumber(value).toFixed(0);
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 4. Device-wise Consumption (Doughnut Chart) - FROM DATABASE
+      const deviceCtx = document.getElementById('deviceChart');
+      if (deviceCtx) {
+        if (devices && devices.length > 0) {
+          const deviceNames = devices.map(d => d.name || 'Unknown Device');
+          // Use numbers, not strings - Chart.js needs numeric values
+          const deviceEnergy = devices.map(d => {
+            const power = safeNumber(d.powerRating || 0);
+            const hours = safeNumber(d.usageHours || 0);
+            // Return number, not string
+            return safeNumber((power * hours / 1000));
+          });
+          
+          // Filter out devices with zero energy
+          const validDevices = deviceEnergy.map((energy, index) => ({
+            name: deviceNames[index],
+            energy: energy
+          })).filter(d => d.energy > 0);
+          
+          if (validDevices.length > 0) {
+            const finalNames = validDevices.map(d => d.name);
+            const finalEnergy = validDevices.map(d => d.energy);
+            
+            // Generate vibrant colors (repeat if needed)
+            const deviceColors = [
+              'rgba(102, 126, 234, 0.8)',
+              'rgba(118, 75, 162, 0.8)',
+              'rgba(245, 87, 108, 0.8)',
+              'rgba(67, 233, 123, 0.8)',
+              'rgba(250, 112, 154, 0.8)',
+              'rgba(79, 172, 254, 0.8)',
+              'rgba(254, 224, 64, 0.8)',
+            ];
+            
+            // Repeat colors if more devices than colors
+            const colors = [];
+            for (let i = 0; i < finalNames.length; i++) {
+              colors.push(deviceColors[i % deviceColors.length]);
+            }
+
+            console.log('Device Chart Data:', { names: finalNames, energy: finalEnergy });
+
+            destroyChart('device');
+            chartInstances['device'] = new Chart(deviceCtx.getContext('2d'), {
+              type: 'doughnut',
+              data: {
+                labels: finalNames,
+                datasets: [{
+                  data: finalEnergy, // Numbers, not strings
+                  backgroundColor: colors,
+                  borderWidth: 3,
+                  borderColor: '#fff'
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'right',
+                    labels: {
+                      padding: 15,
+                      font: { size: 11 },
+                      usePointStyle: true,
+                      boxWidth: 12
+                    }
+                  },
+                  tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    callbacks: {
+                      label: function(context) {
+                        const label = context.label || '';
+                        const value = safeNumber(context.parsed);
+                        const total = context.dataset.data.reduce((a, b) => safeNumber(a) + safeNumber(b), 0);
+                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                        return `${label}: ${value.toFixed(2)} kWh (${percentage}%)`;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          } else {
+            // No devices with energy - show message
+            console.warn('No devices with energy consumption found');
+          }
+        } else {
+          console.warn('No devices found for chart');
+        }
+      }
+
+      // Edit Device Modal Functions
+      function editDevice(id, name, power, hours) {
+        document.getElementById('editName').value = name;
+        document.getElementById('editPower').value = power;
+        document.getElementById('editHours').value = hours;
+        document.getElementById('editDeviceForm').action = `/dashboard/<%= user._id %>/device/${id}?_method=PUT`;
+        document.getElementById('editModal').style.display = 'block';
+      }
+
+      function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+          closeModal();
+        }
+      }
+    </script>
+  </body>
+</html>
