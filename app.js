@@ -34,6 +34,67 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
+// ==================== ROLE-BASED ACCESS CONTROL MIDDLEWARE ====================
+
+// Middleware to verify user exists and is a regular user
+async function requireUser(req, res, next) {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    if (user.role !== 'user') {
+      return res.status(403).send("Access denied. This page is for residents only.");
+    }
+    req.user = user; // Attach user to request
+    next();
+  } catch (err) {
+    console.error("Error in requireUser middleware:", err);
+    res.status(500).send("Error verifying user access.");
+  }
+}
+
+// Middleware to verify builder exists and has builder role
+async function requireBuilder(req, res, next) {
+  try {
+    const builder = await User.findById(req.params.id);
+    if (!builder) {
+      return res.status(404).send("Builder not found");
+    }
+    if (builder.role !== 'builder') {
+      return res.status(403).send("Access denied. Builder role required.");
+    }
+    req.builder = builder; // Attach builder to request
+    next();
+  } catch (err) {
+    console.error("Error in requireBuilder middleware:", err);
+    res.status(500).send("Error verifying builder access.");
+  }
+}
+
+// Middleware to ensure user can only access their own data
+async function requireOwnership(req, res, next) {
+  try {
+    const resourceUserId = req.params.id;
+    // For device routes, check if device belongs to user
+    if (req.params.deviceId) {
+      const foundDevice = await device.findById(req.params.deviceId);
+      if (!foundDevice) {
+        return res.status(404).send("Device not found");
+      }
+      if (foundDevice.userId.toString() !== resourceUserId) {
+        return res.status(403).send("Access denied. You can only manage your own devices.");
+      }
+    }
+    next();
+  } catch (err) {
+    console.error("Error in requireOwnership middleware:", err);
+    res.status(500).send("Error verifying ownership.");
+  }
+}
+
+// ==============================================================================
+
 app.get("/", (req, res) => {
   res.render("home.ejs");
 });
@@ -149,10 +210,9 @@ async function createOrUpdateDailyLog(userId, date, totalEnergy, cost) {
   }
 }
 
-app.get("/dashboard/:id", async (req, res) => {
+app.get("/dashboard/:id", requireUser, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).send("User not found");
+    const user = req.user; // Already verified by middleware
 
     const devices = await device.find({ userId: req.params.id });
     
@@ -433,7 +493,7 @@ app.get("/dashboard/:id", async (req, res) => {
 });
 
 // Add new device/appliance
-app.post("/dashboard/:id/device", async (req, res) => {
+app.post("/dashboard/:id/device", requireUser, async (req, res) => {
   try {
     const { name, powerRating, usageHours } = req.body;
     
@@ -480,15 +540,12 @@ app.post("/dashboard/:id/device", async (req, res) => {
 });
 
 // Update device
-app.put("/dashboard/:id/device/:deviceId", async (req, res) => {
+app.put("/dashboard/:id/device/:deviceId", requireUser, requireOwnership, async (req, res) => {
   try {
     const { name, powerRating, usageHours } = req.body;
     const foundDevice = await device.findById(req.params.deviceId);
     
     if (!foundDevice) return res.status(404).send("Device not found");
-    if (foundDevice.userId.toString() !== req.params.id) {
-      return res.status(403).send("Unauthorized");
-    }
 
     // Validate input
     if (name && name.trim().length > 0) foundDevice.name = name.trim();
@@ -522,14 +579,11 @@ app.put("/dashboard/:id/device/:deviceId", async (req, res) => {
 });
 
 // Delete device
-app.delete("/dashboard/:id/device/:deviceId", async (req, res) => {
+app.delete("/dashboard/:id/device/:deviceId", requireUser, requireOwnership, async (req, res) => {
   try {
     const foundDevice = await device.findById(req.params.deviceId);
     
     if (!foundDevice) return res.status(404).send("Device not found");
-    if (foundDevice.userId.toString() !== req.params.id) {
-      return res.status(403).send("Unauthorized");
-    }
 
     await device.findByIdAndDelete(req.params.deviceId);
     
@@ -550,14 +604,10 @@ app.delete("/dashboard/:id/device/:deviceId", async (req, res) => {
 });
 
 // Toggle device status
-app.patch("/dashboard/:id/device/:deviceId/toggle", async (req, res) => {
+app.patch("/dashboard/:id/device/:deviceId/toggle", requireUser, requireOwnership, async (req, res) => {
   try {
     const foundDevice = await device.findById(req.params.deviceId);
     if (!foundDevice) return res.status(404).send("Device not found");
-    
-    if (foundDevice.userId.toString() !== req.params.id) {
-      return res.status(403).send("Unauthorized");
-    }
 
     foundDevice.status = foundDevice.status === "ON" ? "OFF" : "ON";
     foundDevice.lastUpdated = new Date();
@@ -580,15 +630,9 @@ app.patch("/dashboard/:id/device/:deviceId/toggle", async (req, res) => {
 });
 
 // Builder Dashboard - View aggregated energy consumption from all users
-app.get("/builder/dashboard/:id", async (req, res) => {
+app.get("/builder/dashboard/:id", requireBuilder, async (req, res) => {
   try {
-    const builder = await User.findById(req.params.id);
-    if (!builder) return res.status(404).send("Builder not found");
-    
-    // Verify builder role
-    if (builder.role !== 'builder') {
-      return res.status(403).send("Access denied. Builder role required.");
-    }
+    const builder = req.builder; // Already verified by middleware
 
     // Get all regular users (building residents)
     const allUsers = await User.find({ role: 'user' });
