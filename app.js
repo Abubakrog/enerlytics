@@ -7,6 +7,7 @@ const methodOverride = require("method-override");
 const User = require("./models/user.js");
 const energyLog = require("./models/energyLog.js");
 const device = require("./models/device.js");
+const dotenv = require("dotenv");
 
 app.engine("ejs", engine);
 app.set("view engine", "ejs");
@@ -15,19 +16,23 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/enerlytics";
+// const MONGO_URL = "mongodb://127.0.0.1:27017/enerlytics";
 
-main()
-  .then(() => {
-    console.log("Connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+// main()
+//   .then(() => {
+//     console.log("Connected to DB");
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
 
-async function main() {
-  await mongoose.connect(MONGO_URL);
-}
+// async function main() {
+//   await mongoose.connect(MONGO_URL);
+// }
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ Connected to MongoDB Atlas'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 app.get("/", (req, res) => {
   res.render("home.ejs");
