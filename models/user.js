@@ -24,16 +24,15 @@ const userSchema = new mongoose.Schema({
   },
   noOfAppliances: {
     type: Number,
-    required: true,
-    min: 1,
+    default: 0,
   },
   typesOfAppliances: {
     type: [String], // example: ["Fan", "AC", "Fridge"]
-    required: true,
+    default: [],
   },
   lastMonthBill: {
     type: Number, // in ₹
-    required: true,
+    default: 0,
   },
 });
 

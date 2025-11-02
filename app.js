@@ -79,14 +79,11 @@ app.post("/signup", async (req, res) => {
       email,
       password,
       address,
-      noOfAppliances,
-      typesOfAppliances,
-      lastMonthBill,
     } = req.body;
 
     // Basic validation
-    if (!name || !email || !password) {
-      return res.status(400).send("All required fields must be filled.");
+    if (!name || !email || !password || !address) {
+      return res.status(400).send("All required fields (name, email, password, address) must be filled.");
     }
 
     // Save new user
@@ -95,9 +92,10 @@ app.post("/signup", async (req, res) => {
       email,
       password,
       address,
-      noOfAppliances,
-      typesOfAppliances,
-      lastMonthBill,
+      // Optional fields with defaults
+      noOfAppliances: 0,
+      typesOfAppliances: [],
+      lastMonthBill: 0,
     });
 
     await newUser.save();

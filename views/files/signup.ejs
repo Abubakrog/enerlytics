@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up | Smart Energy Monitor</title>
+  <title>Sign Up | Enerlytics</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #F5F5F5;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -18,15 +18,19 @@
     .form-container {
       background-color: #FFFFFF;
       padding: 30px 40px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       width: 360px;
     }
 
     h2 {
       text-align: center;
-      color: #3CB371;
+      color: #667eea;
       margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     form {
@@ -36,55 +40,69 @@
     }
 
     input, textarea {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
       font-size: 1rem;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
     }
 
     button {
-      background-color: #1E90FF;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 10px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 1rem;
-      transition: background 0.2s ease;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     button:hover {
-      background-color: #1565C0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
     .login-link {
       text-align: center;
-      margin-top: 10px;
+      margin-top: 15px;
       font-size: 0.9rem;
+      color: #666;
     }
 
     .login-link a {
-      color: #3CB371;
+      color: #667eea;
       text-decoration: none;
+      font-weight: 600;
     }
 
     .login-link a:hover {
       text-decoration: underline;
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
   <div class="form-container">
-    <h2>Create Account</h2>
+    <h2><i class="fas fa-bolt"></i> Create Account</h2>
     <form action="/signup" method="POST">
       <input type="text" name="name" placeholder="Full Name" required />
       <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <textarea name="address" placeholder="Address" rows="2" required></textarea>
-      <input type="number" name="noOfAppliances" placeholder="Number of Appliances" min="1" required />
-      <input type="text" name="typesOfAppliances" placeholder="Types of Appliances (comma-separated)" required />
-      <input type="number" name="lastMonthBill" placeholder="Last Month Bill (₹)" min="0" required />
-      <button type="submit">Sign Up</button>
+      <input type="password" name="password" placeholder="Password" minlength="6" required />
+      <textarea name="address" placeholder="Address" rows="3" required></textarea>
+      <button type="submit"><i class="fas fa-user-plus"></i> Sign Up</button>
     </form>
     <div class="login-link">
       Already have an account? <a href="/login">Login</a>
