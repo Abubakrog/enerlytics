@@ -64,8 +64,12 @@ app.post("/login", async (req, res) => {
       return res.render("login.ejs", { error: "Invalid email or password. Please try again." });
     }
 
-    // Successful login → redirect to dashboard
-    res.redirect(`/dashboard/${user._id}`);
+    // Successful login → redirect based on role
+    if (user.role === 'builder') {
+      res.redirect(`/builder/dashboard/${user._id}`);
+    } else {
+      res.redirect(`/dashboard/${user._id}`);
+    }
   } catch (err) {
     console.error(err);
     res.render("login.ejs", { error: "Login error. Please try again later." });
@@ -79,6 +83,7 @@ app.post("/signup", async (req, res) => {
       email,
       password,
       address,
+      role,
     } = req.body;
 
     // Basic validation
@@ -86,12 +91,16 @@ app.post("/signup", async (req, res) => {
       return res.status(400).send("All required fields (name, email, password, address) must be filled.");
     }
 
+    // Validate role
+    const userRole = (role === 'builder') ? 'builder' : 'user';
+
     // Save new user
     const newUser = new User({
       name,
       email,
       password,
       address,
+      role: userRole,
       // Optional fields with defaults
       noOfAppliances: 0,
       typesOfAppliances: [],
@@ -567,6 +576,141 @@ app.patch("/dashboard/:id/device/:deviceId/toggle", async (req, res) => {
   } catch (err) {
     console.error("Error toggling device:", err);
     res.status(500).send("Error toggling device: " + err.message);
+  }
+});
+
+// Builder Dashboard - View aggregated energy consumption from all users
+app.get("/builder/dashboard/:id", async (req, res) => {
+  try {
+    const builder = await User.findById(req.params.id);
+    if (!builder) return res.status(404).send("Builder not found");
+    
+    // Verify builder role
+    if (builder.role !== 'builder') {
+      return res.status(403).send("Access denied. Builder role required.");
+    }
+
+    // Get all regular users (building residents)
+    const allUsers = await User.find({ role: 'user' });
+    
+    // Get all devices from all users
+    const allDevices = await device.find({});
+    
+    // Get all energy logs from all users
+    const allLogs = await energyLog.find({}).sort({ date: -1 });
+    
+    // Calculate aggregated statistics
+    const totalUsers = allUsers.length;
+    const totalDevices = allDevices.length;
+    
+    // Calculate total energy consumption
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayLogs = allLogs.filter(log => {
+      const logDate = new Date(log.date);
+      logDate.setHours(0, 0, 0, 0);
+      return logDate.getTime() === today.getTime();
+    });
+    
+    const totalTodayEnergy = todayLogs.reduce((sum, log) => sum + (log.totalEnergyUsed || 0), 0);
+    const totalTodayCost = todayLogs.reduce((sum, log) => sum + (log.cost || 0), 0);
+    
+    // Calculate total power (ON devices)
+    const totalPower = allDevices
+      .filter((d) => d.status === "ON")
+      .reduce((sum, d) => sum + (d.powerRating || 0), 0);
+    
+    // Monthly statistics
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    
+    const currentMonthLogs = allLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= currentMonthStart;
+    });
+    
+    const lastMonthLogs = allLogs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= lastMonthStart && logDate < currentMonthStart;
+    });
+    
+    const currentMonthEnergy = currentMonthLogs.reduce(
+      (sum, log) => sum + (log.totalEnergyUsed || 0),
+      0
+    );
+    
+    const lastMonthEnergy = lastMonthLogs.reduce(
+      (sum, log) => sum + (log.totalEnergyUsed || 0),
+      0
+    );
+    
+    const currentMonthCost = currentMonthEnergy * 6;
+    const lastMonthCost = lastMonthEnergy * 6;
+    
+    // Get last 7 days data for chart
+    const dailyData = [];
+    for (let i = 6; i >= 0; i--) {
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() - i);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const dayLogs = allLogs.filter(log => {
+        const logDate = new Date(log.date);
+        logDate.setHours(0, 0, 0, 0);
+        return logDate.getTime() === targetDate.getTime();
+      });
+      
+      const dayEnergy = dayLogs.reduce((sum, log) => sum + (log.totalEnergyUsed || 0), 0);
+      const dayCost = dayEnergy * 6;
+      
+      dailyData.push({
+        date: targetDate.toISOString(),
+        energy: parseFloat(dayEnergy.toFixed(2)),
+        cost: parseFloat(dayCost.toFixed(2))
+      });
+    }
+    
+    // Get user-wise consumption data
+    const userConsumption = allUsers.map(user => {
+      const userDevices = allDevices.filter(d => d.userId.toString() === user._id.toString());
+      const userLogs = allLogs.filter(log => log.userId.toString() === user._id.toString());
+      
+      const userEnergy = userDevices.reduce(
+        (sum, d) => sum + ((d.powerRating || 0) * (d.usageHours || 0)) / 1000,
+        0
+      );
+      const userCost = userEnergy * 6;
+      
+      return {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        address: user.address,
+        deviceCount: userDevices.length,
+        dailyEnergy: parseFloat(userEnergy.toFixed(2)),
+        dailyCost: parseFloat(userCost.toFixed(2))
+      };
+    }).sort((a, b) => b.dailyEnergy - a.dailyEnergy); // Sort by highest consumption
+    
+    res.render("builderDashboard.ejs", {
+      builder,
+      totalUsers,
+      totalDevices,
+      totalPower,
+      totalTodayEnergy: totalTodayEnergy.toFixed(2),
+      totalTodayCost: totalTodayCost.toFixed(2),
+      currentMonthEnergy: currentMonthEnergy.toFixed(2),
+      lastMonthEnergy: lastMonthEnergy.toFixed(2),
+      currentMonthCost: currentMonthCost.toFixed(2),
+      lastMonthCost: lastMonthCost.toFixed(2),
+      dailyData,
+      userConsumption
+    });
+  } catch (err) {
+    console.error("Builder dashboard error:", err);
+    res.status(500).send("Error loading builder dashboard: " + err.message);
   }
 });
 

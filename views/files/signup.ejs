@@ -102,6 +102,10 @@
       <input type="email" name="email" placeholder="Email" required />
       <input type="password" name="password" placeholder="Password" minlength="6" required />
       <textarea name="address" placeholder="Address" rows="3" required></textarea>
+      <select name="role" style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; font-family: inherit; background-color: white; cursor: pointer;" onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e0e0e0'">
+        <option value="user">Resident / User</option>
+        <option value="builder">Builder / Building Manager</option>
+      </select>
       <button type="submit"><i class="fas fa-user-plus"></i> Sign Up</button>
     </form>
     <div class="login-link">
