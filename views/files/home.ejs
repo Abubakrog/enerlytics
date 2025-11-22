@@ -3,60 +3,656 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Energy Monitor</title>
+  <title>Enerlytics - Smart Energy Management for Modern Buildings</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    body {
+    * {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #F5F5F5;
-      color: #333333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    h1 {
-      color: #3CB371;
-      font-size: 2.2rem;
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px 50px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: #555;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    .nav-link:hover {
+      color: #667eea;
+    }
+
+    .nav-btn {
+      padding: 10px 25px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .nav-btn.login {
+      color: #667eea;
+      border-color: #667eea;
+    }
+
+    .nav-btn.login:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .nav-btn.signup {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .nav-btn.signup:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 100px;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      top: -250px;
+      right: -250px;
+      animation: float 20s infinite;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+      bottom: -200px;
+      left: -200px;
+      animation: float 15s infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+      50% {
+        transform: translate(30px, 30px) rotate(180deg);
+      }
+    }
+
+    .hero-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 50px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 20px;
+      line-height: 1.2;
+      animation: fadeInUp 1s ease;
+    }
+
+    .hero .subtitle {
+      font-size: 1.5rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 15px;
+      font-weight: 300;
+      animation: fadeInUp 1s ease 0.2s both;
+    }
+
+    .hero .description {
+      font-size: 1.2rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 40px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: fadeInUp 1s ease 0.4s both;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+      animation: fadeInUp 1s ease 0.6s both;
+    }
+
+    .cta-btn {
+      padding: 18px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cta-btn.primary {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-btn.primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+    }
+
+    .cta-btn.secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      backdrop-filter: blur(10px);
+    }
+
+    .cta-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 100px 50px;
+      background: white;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 60px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 5px 30px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+      border: 1px solid #f0f0f0;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+
+    .feature-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      margin-bottom: 25px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .feature-card p {
+      color: #666;
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    /* Stats Section */
+    .stats {
+      padding: 80px 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+      text-align: center;
+    }
+
+    .stat-item {
+      animation: fadeInUp 1s ease;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 700;
       margin-bottom: 10px;
     }
 
-    p {
-      color: #555;
+    .stat-label {
       font-size: 1.1rem;
-      margin-bottom: 30px;
+      opacity: 0.9;
     }
 
-    .btn-container {
-      display: flex;
-      gap: 20px;
+    /* CTA Section */
+    .cta-section {
+      padding: 100px 50px;
+      background: white;
+      text-align: center;
     }
 
-    .btn {
-      background-color: #1E90FF;
+    .cta-content {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-content h2 {
+      font-size: 2.5rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .cta-content p {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    /* Footer */
+    footer {
+      background: #1a1a1a;
       color: white;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s ease-in-out;
-      text-decoration: none;
+      padding: 50px;
+      text-align: center;
     }
 
-    .btn:hover {
-      background-color: #1565C0;
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-link:hover {
+      color: white;
+    }
+
+    .footer-bottom {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav {
+        padding: 15px 20px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links {
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero .subtitle {
+        font-size: 1.2rem;
+      }
+
+      .hero .description {
+        font-size: 1rem;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .cta-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+      }
+
+      .features {
+        padding: 60px 20px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Smart Energy Monitor ⚡</h1>
-  <p>Track, analyze, and save energy efficiently with real-time insights.</p>
-  <div class="btn-container">
-    <a href="/login" class="btn">Login</a>
-    <a href="/signup" class="btn" style="background-color:#3CB371;">Sign Up</a>
-  </div>
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">
+      <i class="fas fa-bolt"></i> Enerlytics
+    </div>
+    <div class="nav-links">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#stats" class="nav-link">Impact</a>
+      <a href="/login" class="nav-btn login">Login</a>
+      <a href="/signup" class="nav-btn signup">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Powering the Future of<br>Energy Efficiency</h1>
+      <p class="subtitle">Real-time energy monitoring for smarter buildings</p>
+      <p class="description">
+        Transform your building's energy consumption with AI-powered insights, 
+        real-time analytics, and intelligent recommendations. Join thousands of 
+        buildings already saving energy and reducing costs.
+      </p>
+      <div class="cta-buttons">
+        <a href="/signup" class="cta-btn primary">
+          <i class="fas fa-rocket"></i> Start Free Trial
+        </a>
+        <a href="#features" class="cta-btn secondary">
+          <i class="fas fa-play-circle"></i> Watch Demo
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-title">Why Choose Enerlytics?</h2>
+      <p class="section-subtitle">Everything you need to optimize energy consumption and reduce costs</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Real-Time Analytics</h3>
+          <p>
+            Monitor energy consumption in real-time with beautiful, interactive 
+            dashboards. Get instant insights into your building's energy patterns 
+            and identify optimization opportunities.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>AI-Powered Insights</h3>
+          <p>
+            Our intelligent system analyzes your energy data and provides 
+            personalized recommendations to reduce consumption and save money. 
+            Get actionable insights tailored to your building.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <h3>Device Management</h3>
+          <p>
+            Control and monitor all your appliances from one dashboard. 
+            Track power consumption, set schedules, and optimize device usage 
+            to maximize efficiency.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <h3>Building-Wide View</h3>
+          <p>
+            For builders and managers: Get a comprehensive view of energy 
+            consumption across all residents. Identify high-consumption areas 
+            and optimize building efficiency.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <h3>Cost Savings</h3>
+          <p>
+            Reduce your energy bills by up to 30% with our smart recommendations. 
+            Track savings in real-time and see the financial impact of your 
+            energy optimization efforts.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-leaf"></i>
+          </div>
+          <h3>Sustainability</h3>
+          <p>
+            Contribute to a greener future by reducing your carbon footprint. 
+            Track your environmental impact and join the movement towards 
+            sustainable energy consumption.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats" id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">30%</div>
+          <div class="stat-label">Average Energy Savings</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">10K+</div>
+          <div class="stat-label">Buildings Monitored</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">₹50M+</div>
+          <div class="stat-label">Costs Saved Annually</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Real-Time Monitoring</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Transform Your Energy Management?</h2>
+      <p>
+        Join thousands of buildings already using Enerlytics to reduce costs, 
+        improve efficiency, and contribute to a sustainable future.
+      </p>
+      <div class="cta-buttons">
+        <a href="/signup" class="cta-btn primary">
+          <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+        <a href="/login" class="cta-btn secondary">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="logo" style="color: white; -webkit-text-fill-color: white; margin-bottom: 20px;">
+        <i class="fas fa-bolt"></i> Enerlytics
+      </div>
+      <div class="footer-links">
+        <a href="#features" class="footer-link">Features</a>
+        <a href="#stats" class="footer-link">Impact</a>
+        <a href="/login" class="footer-link">Login</a>
+        <a href="/signup" class="footer-link">Sign Up</a>
+      </div>
+      <div class="footer-bottom">
+        <p>Enerlytics © 2025 | Designed for Smarter Cities 🌱</p>
+        <p style="margin-top: 10px; font-size: 0.9rem;">
+          Empowering buildings to achieve energy efficiency and sustainability
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add scroll effect to navbar
+    let lastScroll = 0;
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      if (currentScroll > 100) {
+        nav.style.boxShadow = '0 2px 30px rgba(0, 0, 0, 0.15)';
+      } else {
+        nav.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+      }
+      lastScroll = currentScroll;
+    });
+  </script>
 </body>
 </html>
